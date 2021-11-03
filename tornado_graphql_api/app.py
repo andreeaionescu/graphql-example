@@ -10,7 +10,7 @@ from graphene_tornado.tornado_graphql_handler import TornadoGraphQLHandler
 SWAPI_URL = 'https://swapi.dev/api'
 
 
-class PlanetType(graphene.ObjectType):
+class Planet(graphene.ObjectType):
     name = graphene.String()
     rotation_period = graphene.String()
     orbital_period = graphene.String()
@@ -28,13 +28,29 @@ class PlanetType(graphene.ObjectType):
 
 
 class QueryPlanet(graphene.ObjectType):
-    planet = graphene.Field(PlanetType)
+    planet = graphene.Field(Planet)
 
     async def resolve_planet(self, info):
         http_client = AsyncHTTPClient()
         response = await http_client.fetch(f'{SWAPI_URL}/planets/1')
+        print('Info: ', info)
         print(json.loads(response.body))
-        return PlanetType(json.loads(response.body))
+        planet = json.loads(response.body)
+        return Planet(name=planet.get('name'),
+                      rotation_period=planet.get('rotation_period'),
+                      orbital_period=planet.get('orbital_period'),
+                      diameter=planet.get('diameter'),
+                      climate=planet.get('climate'),
+                      gravity=planet.get('gravity'),
+                      terrain=planet.get('terrain'),
+                      surface_water=planet.get('surface_water'),
+                      population=planet.get('population'),
+                      residents=planet.get('residents'),
+                      films=planet.get('films'),
+                      created=planet.get('created'),
+                      edited=planet.get('edited'),
+                      url=planet.get('url'),
+                      )
 
 
 class ExampleApplication(tornado.web.Application):
