@@ -6,6 +6,7 @@ from tornado.httpclient import AsyncHTTPClient
 
 from graphene_tornado.schema import schema
 from graphene_tornado.tornado_graphql_handler import TornadoGraphQLHandler
+from pprint import pprint
 
 SWAPI_URL = 'https://swapi.dev/api'
 
@@ -27,8 +28,16 @@ class Planet(graphene.ObjectType):
     url = graphene.String()
 
 
+class Planets(graphene.ObjectType):
+    count = graphene.Int()
+    next = graphene.String()
+    previous = graphene.String()
+    results = graphene.List(Planet)
+
+
 class QueryPlanet(graphene.ObjectType):
     planet = graphene.Field(Planet)
+    planets = graphene.Field(Planets)
 
     async def resolve_planet(self, info):
         http_client = AsyncHTTPClient()
@@ -51,6 +60,17 @@ class QueryPlanet(graphene.ObjectType):
                       edited=planet.get('edited'),
                       url=planet.get('url'),
                       )
+
+    async def resolve_planets(self, info):
+        http_client = AsyncHTTPClient()
+        response = await http_client.fetch(f'{SWAPI_URL}/planets')
+        print('Info: ', info)
+        pprint(json.loads(response.body))
+        planets = json.loads(response.body)
+        return Planets(count=planets.get('count'),
+                       next=planets.get('next'),
+                       previous=planets.get('previous'),
+                       results=planets.get('results'))
 
 
 class ExampleApplication(tornado.web.Application):
