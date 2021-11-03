@@ -1,76 +1,10 @@
 import tornado.web
-import json
 import graphene
 from tornado.ioloop import IOLoop
-from tornado.httpclient import AsyncHTTPClient
 
 from graphene_tornado.schema import schema
 from graphene_tornado.tornado_graphql_handler import TornadoGraphQLHandler
-from pprint import pprint
-
-SWAPI_URL = 'https://swapi.dev/api'
-
-
-class Planet(graphene.ObjectType):
-    name = graphene.String()
-    rotation_period = graphene.String()
-    orbital_period = graphene.String()
-    diameter = graphene.String()
-    climate = graphene.String()
-    gravity = graphene.String()
-    terrain = graphene.String()
-    surface_water = graphene.String()
-    population = graphene.String()
-    residents = graphene.List(graphene.String)
-    films = graphene.List(graphene.String)
-    created = graphene.String()
-    edited = graphene.String()
-    url = graphene.String()
-
-
-class Planets(graphene.ObjectType):
-    count = graphene.Int()
-    next = graphene.String()
-    previous = graphene.String()
-    results = graphene.List(Planet)
-
-
-class QueryPlanet(graphene.ObjectType):
-    planet = graphene.Field(Planet)
-    planets = graphene.Field(Planets)
-
-    async def resolve_planet(self, info):
-        http_client = AsyncHTTPClient()
-        response = await http_client.fetch(f'{SWAPI_URL}/planets/1')
-        print('Info: ', info)
-        print(json.loads(response.body))
-        planet = json.loads(response.body)
-        return Planet(name=planet.get('name'),
-                      rotation_period=planet.get('rotation_period'),
-                      orbital_period=planet.get('orbital_period'),
-                      diameter=planet.get('diameter'),
-                      climate=planet.get('climate'),
-                      gravity=planet.get('gravity'),
-                      terrain=planet.get('terrain'),
-                      surface_water=planet.get('surface_water'),
-                      population=planet.get('population'),
-                      residents=planet.get('residents'),
-                      films=planet.get('films'),
-                      created=planet.get('created'),
-                      edited=planet.get('edited'),
-                      url=planet.get('url'),
-                      )
-
-    async def resolve_planets(self, info):
-        http_client = AsyncHTTPClient()
-        response = await http_client.fetch(f'{SWAPI_URL}/planets')
-        print('Info: ', info)
-        pprint(json.loads(response.body))
-        planets = json.loads(response.body)
-        return Planets(count=planets.get('count'),
-                       next=planets.get('next'),
-                       previous=planets.get('previous'),
-                       results=planets.get('results'))
+from tornado_graphql_api.queries import QueryPlanet
 
 
 class ExampleApplication(tornado.web.Application):
